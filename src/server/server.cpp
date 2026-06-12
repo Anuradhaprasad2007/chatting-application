@@ -14,7 +14,10 @@
 Server::Server() : serverSocket(INVALID_SOCKET), running(false) {
 #ifdef _WIN32
     WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        std::cerr << "WSAStartup failed with error: " << result << "\n";
+    }
 #endif
 }
 
@@ -26,10 +29,16 @@ Server::~Server() {
 }
 
 bool Server::initialize(int port) {
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (serverSocket == INVALID_SOCKET) {
-        std::cerr << "Error creating socket\n";
+        std::cerr << "Error creating socket: " << ERROR_MSG << "\n";
         return false;
+    }
+    
+    // Allow socket to bind to port immediately after close
+    int reuseAddr = 1;
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseAddr, sizeof(reuseAddr)) < 0) {
+        std::cerr << "setsockopt failed\n";
     }
     
     sockaddr_in serverAddr;
@@ -37,23 +46,34 @@ bool Server::initialize(int port) {
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(port);
     
+    std::cout << "Attempting to bind to port " << port << "...\n";
+    
     if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        std::cerr << "Error binding socket\n";
+        std::cerr << "Error binding socket to port " << port << ": " << ERROR_MSG << "\n";
+        std::cerr << "Port may already be in use. Try a different port.\n";
+        closesocket(serverSocket);
+        serverSocket = INVALID_SOCKET;
         return false;
     }
     
-    if (listen(serverSocket, 5) == SOCKET_ERROR) {
-        std::cerr << "Error listening\n";
+    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+        std::cerr << "Error listening: " << ERROR_MSG << "\n";
+        closesocket(serverSocket);
+        serverSocket = INVALID_SOCKET;
         return false;
     }
     
+    std::cout << "✓ Server socket initialized successfully on port " << port << "\n";
     logger.logAction("Server initialized on port " + std::to_string(port));
     return true;
 }
 
 void Server::start() {
     running = true;
-    std::cout << "NeuroChat Server started. Waiting for clients...\n";
+    std::cout << "\n╔════════════════════════════════════════════════════════╗\n";
+    std::cout << "║      NeuroChat Server Started Successfully!           ║\n";
+    std::cout << "║      Waiting for clients to connect...                ║\n";
+    std::cout << "╚════════════════════════════════════════════════════════╝\n\n";
     logger.logAction("Server started");
     
     while (running) {
@@ -63,11 +83,12 @@ void Server::start() {
         SOCKET clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
         if (clientSocket == INVALID_SOCKET) {
             if (running) {
-                std::cerr << "Error accepting client\n";
+                std::cerr << "Error accepting client: " << ERROR_MSG << "\n";
             }
             continue;
         }
         
+        std::cout << "[NEW CONNECTION] Client connected\n";
         std::thread clientThread(&Server::handleClient, this, clientSocket);
         clientThread.detach();
     }
@@ -93,7 +114,6 @@ void Server::handleClient(SOCKET clientSocket) {
                 break;
             case MSG_LOGOUT:
                 handleLogout(clientSocket);
-                running = false;
                 break;
         }
     }

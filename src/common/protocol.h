@@ -6,7 +6,7 @@
 
 #define MAX_MESSAGE_SIZE 1024
 #define MAX_NAME_SIZE 50
-#define PORT 9999
+#define PORT 8888
 
 // Message types
 enum MessageType {
