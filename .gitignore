@@ -1,0 +1,43 @@
+# Build directory
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# IDE
+.vscode/
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.vcxproj.user
+.idea/
+
+# Executables
+*.exe
+*.out
+*.app
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Object files
+*.o
+*.obj
+*.os
+
+# Logs
+chat_log.txt
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
