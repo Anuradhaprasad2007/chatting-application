@@ -1,14 +1,17 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <string>
 #include <thread>
-#include "../common/protocol.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
+    #include <ws2tcpip.h>
     typedef int socklen_t;
-    #define INVALID_SOCKET INVALID_SOCKET
+    #pragma comment(lib, "ws2_32.lib")
 #else
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -19,6 +22,8 @@
     #define closesocket close
     typedef int SOCKET;
 #endif
+
+#include "../common/protocol.h"
 
 class Client {
 private:

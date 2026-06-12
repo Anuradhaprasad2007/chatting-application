@@ -7,6 +7,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+# Add compile definitions for MSVC warnings
+if(MSVC)
+    add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+    # Disable specific warnings
+    add_compile_options(/W3)
+else()
+    add_compile_options(-Wall -Wextra -pedantic)
+endif()
+
 # Server executable
 add_executable(ChatApp_Server
     src/server/server.cpp

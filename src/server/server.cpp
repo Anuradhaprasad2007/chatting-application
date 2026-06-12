@@ -1,3 +1,6 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "server.h"
 #include <iostream>
 #include <cstring>
@@ -135,5 +138,13 @@ void Server::broadcastMessage(const Message& msg, SOCKET senderSocket) {
         if (socket != senderSocket) {
             send(socket, (char*)&msg, sizeof(Message), 0);
         }
+    }
+}
+
+void Server::stop() {
+    running = false;
+    if (serverSocket != INVALID_SOCKET) {
+        closesocket(serverSocket);
+        serverSocket = INVALID_SOCKET;
     }
 }

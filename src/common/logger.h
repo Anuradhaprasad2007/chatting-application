@@ -1,6 +1,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <fstream>
 #include <string>
 #include <chrono>

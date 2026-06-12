@@ -1,6 +1,9 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <vector>
 #include <map>
 #include <string>
@@ -11,8 +14,9 @@
 
 #ifdef _WIN32
     #include <winsock2.h>
-    #pragma comment(lib, "ws2_32.lib")
+    #include <ws2tcpip.h>
     typedef int socklen_t;
+    #pragma comment(lib, "ws2_32.lib")
 #else
     #include <sys/socket.h>
     #include <netinet/in.h>

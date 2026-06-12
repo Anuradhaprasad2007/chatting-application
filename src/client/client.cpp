@@ -1,11 +1,10 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "client.h"
 #include "../common/colors.h"
 #include <iostream>
 #include <cstring>
-
-#ifdef _WIN32
-    #pragma comment(lib, "ws2_32.lib")
-#endif
 
 Client::Client() : socket(INVALID_SOCKET), connected(false) {
 #ifdef _WIN32
@@ -53,7 +52,9 @@ bool Client::login(const std::string& name) {
     Message msg;
     msg.type = MSG_LOGIN;
     strncpy(msg.senderName, name.c_str(), MAX_NAME_SIZE - 1);
-    strcpy(msg.content, "");
+    msg.senderName[MAX_NAME_SIZE - 1] = '\0';
+    strncpy(msg.content, "", MAX_MESSAGE_SIZE - 1);
+    msg.content[MAX_MESSAGE_SIZE - 1] = '\0';
     
     if (send(socket, (char*)&msg, sizeof(Message), 0) == SOCKET_ERROR) {
         std::cerr << "Error sending login message\n";
@@ -94,7 +95,9 @@ void Client::sendMessage(const std::string& message) {
     Message msg;
     msg.type = MSG_CHAT;
     strncpy(msg.senderName, clientName.c_str(), MAX_NAME_SIZE - 1);
+    msg.senderName[MAX_NAME_SIZE - 1] = '\0';
     strncpy(msg.content, message.c_str(), MAX_MESSAGE_SIZE - 1);
+    msg.content[MAX_MESSAGE_SIZE - 1] = '\0';
     
     if (send(socket, (char*)&msg, sizeof(Message), 0) == SOCKET_ERROR) {
         std::cerr << "Error sending message\n";
@@ -127,6 +130,7 @@ void Client::disconnect() {
         Message msg;
         msg.type = MSG_LOGOUT;
         strncpy(msg.senderName, clientName.c_str(), MAX_NAME_SIZE - 1);
+        msg.senderName[MAX_NAME_SIZE - 1] = '\0';
         send(socket, (char*)&msg, sizeof(Message), 0);
         
         connected = false;
@@ -134,5 +138,6 @@ void Client::disconnect() {
     
     if (socket != INVALID_SOCKET) {
         closesocket(socket);
+        socket = INVALID_SOCKET;
     }
 }
